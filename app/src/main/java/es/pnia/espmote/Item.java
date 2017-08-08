@@ -7,6 +7,7 @@ public class Item {
     private int image;
     private String name;
     private InetAddress ip;
+    private boolean enabled;
 
     public Item() {
         super();
@@ -17,6 +18,7 @@ public class Item {
         this.image = image;
         this.name = name;
         this.ip = ip;
+        this.enabled = false;
     }
 
     public int getImage() {
@@ -41,6 +43,14 @@ public class Item {
 
     public void setIp(InetAddress ip) {
         this.ip = ip;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
 }

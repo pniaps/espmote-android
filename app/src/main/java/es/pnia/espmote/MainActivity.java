@@ -3,12 +3,25 @@ package es.pnia.espmote;
 import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -20,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView t;
     NsdManager.DiscoveryListener mDiscoveryListener;
 
-    public static final String TAG = MainActivity.class.getSimpleName();
+    public static final String TAG = "ESPMote"; //MainActivity.class.getSimpleName();
     private NsdManager mNsdManager;
 
     public static final String SERVICE_TYPE = "_espmote._tcp.";
@@ -28,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView listView;
     private List items;
     private ItemAdapter adapter;
+    RequestQueue requestQueue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
         setContentView(R.layout.activity_main);
+
+        requestQueue = Volley.newRequestQueue(this);
 
         this.listView = (ListView) findViewById(es.pnia.espmote.R.id.list);
 
@@ -55,6 +71,52 @@ public class MainActivity extends AppCompatActivity {
         // Sets the data behind this ListView
         this.adapter = new ItemAdapter(this, items);
         this.listView.setAdapter(this.adapter);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView adapter, View view, int position, long arg) {
+
+                final Item mote = (Item) listView.getAdapter().getItem(position);
+                final View rowView = view;
+
+                final String JsonURL = "http://"+mote.getIp()+(mote.isEnabled() ? "/disable" : "/enable");
+                JsonObjectRequest enabledReq = new JsonObjectRequest(Request.Method.GET, JsonURL, null,
+                        // The third parameter Listener overrides the method onResponse() and passes
+                        //JSONObject as a parameter
+                        new Response.Listener<JSONObject>() {
+
+                            // Takes the response from the JSON request
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                try {
+                                    boolean enabled = response.getBoolean("enabled");
+                                    mote.setEnabled(enabled);
+
+                                    ImageView ivStatus =  (ImageView) rowView.findViewById(R.id.ivStatus);
+                                    ivStatus.setImageResource(mote.isEnabled() ? R.drawable.light_on : R.drawable.light_off);
+//                                    Log.e(TAG, JsonURL + " - " + (enabled ? "enabled" : "disabled"));
+                                }
+                                // Try and catch are included to handle any errors due to JSON
+                                catch (JSONException e) {
+                                    // If an error occurs, this prints the error to the log
+                                    e.printStackTrace();
+                                }
+                            }
+                        },
+                        // The final parameter overrides the method onErrorResponse() and passes VolleyError
+                        //as a parameter
+                        new Response.ErrorListener() {
+                            @Override
+                            // Handles errors that occur due to Volley
+                            public void onErrorResponse(VolleyError error) {
+                                Log.e("Volley", "Error");
+                            }
+                        }
+                );
+                // Adds the JSON object request "obreq" to the request queue
+                requestQueue.add(enabledReq);
+            }
+        });
 
         mNsdManager = (NsdManager) this.getSystemService(Context.NSD_SERVICE);
 
@@ -95,10 +157,47 @@ public class MainActivity extends AppCompatActivity {
                                 public void onServiceResolved(NsdServiceInfo serviceInfo) {
                                     Log.e(TAG, "Resolve Succeeded. " + serviceInfo);
                                     foundServiceInfo = serviceInfo;
+                                    final Item mote = new Item(R.drawable.esp12e, foundServiceInfo.getServiceName(), foundServiceInfo.getHost());
+
+                                    // Creating the JsonObjectRequest class called obreq, passing required parameters:
+                                    //GET is used to fetch data from the server, JsonURL is the URL to be fetched from.
+                                    final String JsonURL = "http://"+foundServiceInfo.getHost();
+                                    JsonObjectRequest enabledReq = new JsonObjectRequest(Request.Method.GET, JsonURL, null,
+                                            // The third parameter Listener overrides the method onResponse() and passes
+                                            //JSONObject as a parameter
+                                            new Response.Listener<JSONObject>() {
+
+                                                // Takes the response from the JSON request
+                                                @Override
+                                                public void onResponse(JSONObject response) {
+                                                    try {
+                                                        boolean enabled = response.getBoolean("enabled");
+                                                        mote.setEnabled(enabled);
+//                                                        Log.e(TAG, JsonURL + " - " + (enabled ? "enabled" : "disabled"));
+                                                    }
+                                                    // Try and catch are included to handle any errors due to JSON
+                                                    catch (JSONException e) {
+                                                        // If an error occurs, this prints the error to the log
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+                                            },
+                                            // The final parameter overrides the method onErrorResponse() and passes VolleyError
+                                            //as a parameter
+                                            new Response.ErrorListener() {
+                                                @Override
+                                                // Handles errors that occur due to Volley
+                                                public void onErrorResponse(VolleyError error) {
+                                                    Log.e("Volley", "Error");
+                                                }
+                                            }
+                                    );
+                                    // Adds the JSON object request "obreq" to the request queue
+                                    requestQueue.add(enabledReq);
 
                                     runOnUiThread(new Runnable() {
                                         public void run() {
-                                            items.add(new Item(R.drawable.esp12e, foundServiceInfo.getServiceName(), foundServiceInfo.getHost()));
+                                            items.add(mote);
                                             adapter.notifyDataSetChanged();
                                         }
 
