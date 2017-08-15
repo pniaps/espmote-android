@@ -7,10 +7,37 @@ public class Item {
     private int image;
     private String name;
     private InetAddress ip;
-    private boolean enabled;
+    private Boolean channel0;
+    private Boolean channel1;
+    private Boolean channel2;
 
     public Item() {
         super();
+    }
+
+    public Boolean isChannel0() {
+        return channel0;
+    }
+
+    public Boolean isChannel1() {
+        return channel1;
+    }
+
+    public Boolean isChannel2() {
+        return channel2;
+    }
+
+    public void setChannel0(Boolean channel0) {
+
+        this.channel0 = channel0;
+    }
+
+    public void setChannel1(Boolean channel1) {
+        this.channel1 = channel1;
+    }
+
+    public void setChannel2(Boolean channel2) {
+        this.channel2 = channel2;
     }
 
     public Item(int image, String name, InetAddress ip) {
@@ -18,7 +45,9 @@ public class Item {
         this.image = image;
         this.name = name;
         this.ip = ip;
-        this.enabled = false;
+        this.channel0 = false;
+        this.channel1 = false;
+        this.channel2 = false;
     }
 
     public int getImage() {
@@ -43,14 +72,6 @@ public class Item {
 
     public void setIp(InetAddress ip) {
         this.ip = ip;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
     }
 
 }

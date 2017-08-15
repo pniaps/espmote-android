@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="?android:attr/listPreferredItemHeight">
 
@@ -14,30 +15,74 @@
 
     <TextView
         android:id="@+id/tvTitle"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="false"
         android:layout_alignParentTop="true"
-        android:layout_alignWithParentIfMissing="false"
-        android:layout_marginBottom="5dip"
-        android:layout_marginLeft="64dip"
-        android:layout_marginRight="32dip"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
         android:layout_marginTop="5dip"
-        android:elegantTextHeight="true"
-        android:singleLine="true"
+        android:layout_toEndOf="@+id/ivItem"
+        android:layout_toStartOf="@+id/linearLayout"
+        android:elegantTextHeight="false"
+        android:gravity="center_vertical"
         android:text="ESP-12E"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textIsSelectable="false" />
 
-    <ImageView
-        android:id="@+id/ivStatus"
+    <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="false"
-        android:layout_alignParentRight="true"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
-        android:adjustViewBounds="false"
-        app:srcCompat="@drawable/light_off" />
+        android:orientation="horizontal"
+        android:id="@+id/linearLayout">
+
+        <ImageView
+            android:id="@+id/ivChannel0"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignBottom="@+id/tvTitle"
+            android:layout_alignEnd="@+id/tvTitle"
+            android:layout_alignTop="@+id/tvTitle"
+            android:layout_gravity="right"
+            android:layout_toStartOf="@+id/ivChannel1"
+            android:layout_weight="1"
+            android:adjustViewBounds="false"
+            android:visibility="visible"
+            app:srcCompat="@drawable/light_off" />
+
+        <ImageView
+            android:id="@+id/ivChannel1"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignBottom="@+id/tvTitle"
+            android:layout_alignEnd="@+id/tvTitle"
+            android:layout_alignParentRight="false"
+            android:layout_alignTop="@+id/tvTitle"
+            android:layout_gravity="right"
+            android:layout_toStartOf="@+id/ivChannel2"
+            android:layout_weight="1"
+            android:adjustViewBounds="false"
+            android:visibility="visible"
+            app:srcCompat="@drawable/light_off" />
+
+        <ImageView
+            android:id="@+id/ivChannel2"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignBottom="@+id/tvTitle"
+            android:layout_alignEnd="@+id/tvTitle"
+            android:layout_alignParentEnd="false"
+            android:layout_alignParentRight="false"
+            android:layout_alignTop="@+id/tvTitle"
+            android:layout_gravity="right"
+            android:layout_weight="1"
+            android:adjustViewBounds="false"
+            android:visibility="visible"
+            app:srcCompat="@drawable/light_off" />
+
+    </LinearLayout>
 
 </RelativeLayout>

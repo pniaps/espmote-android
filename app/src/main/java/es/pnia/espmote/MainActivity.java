@@ -41,13 +41,11 @@ public class MainActivity extends AppCompatActivity {
     private ListView listView;
     private List items;
     private ItemAdapter adapter;
-    RequestQueue requestQueue;
+    public static RequestQueue requestQueue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Display a indeterminate progress bar on title bar
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
         setContentView(R.layout.activity_main);
 
@@ -72,51 +70,52 @@ public class MainActivity extends AppCompatActivity {
         this.adapter = new ItemAdapter(this, items);
         this.listView.setAdapter(this.adapter);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView adapter, View view, int position, long arg) {
-
-                final Item mote = (Item) listView.getAdapter().getItem(position);
-                final View rowView = view;
-
-                final String JsonURL = "http://"+mote.getIp()+(mote.isEnabled() ? "/disable" : "/enable");
-                JsonObjectRequest enabledReq = new JsonObjectRequest(Request.Method.GET, JsonURL, null,
-                        // The third parameter Listener overrides the method onResponse() and passes
-                        //JSONObject as a parameter
-                        new Response.Listener<JSONObject>() {
-
-                            // Takes the response from the JSON request
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                try {
-                                    boolean enabled = response.getBoolean("enabled");
-                                    mote.setEnabled(enabled);
-
-                                    ImageView ivStatus =  (ImageView) rowView.findViewById(R.id.ivStatus);
-                                    ivStatus.setImageResource(mote.isEnabled() ? R.drawable.light_on : R.drawable.light_off);
-//                                    Log.e(TAG, JsonURL + " - " + (enabled ? "enabled" : "disabled"));
-                                }
-                                // Try and catch are included to handle any errors due to JSON
-                                catch (JSONException e) {
-                                    // If an error occurs, this prints the error to the log
-                                    e.printStackTrace();
-                                }
-                            }
-                        },
-                        // The final parameter overrides the method onErrorResponse() and passes VolleyError
-                        //as a parameter
-                        new Response.ErrorListener() {
-                            @Override
-                            // Handles errors that occur due to Volley
-                            public void onErrorResponse(VolleyError error) {
-                                Log.e("Volley", "Error");
-                            }
-                        }
-                );
-                // Adds the JSON object request "obreq" to the request queue
-                requestQueue.add(enabledReq);
-            }
-        });
+//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView adapter, View view, int position, long arg) {
+//
+//                final Item mote = (Item) listView.getAdapter().getItem(position);
+//                final View rowView = view;
+//
+//                final String JsonURL = "http://"+mote.getIp()+(mote.isEnabled() ? "/disable" : "/enable");
+//                JsonObjectRequest enabledReq = new JsonObjectRequest(Request.Method.GET, JsonURL, null,
+//                        // The third parameter Listener overrides the method onResponse() and passes
+//                        //JSONObject as a parameter
+//                        new Response.Listener<JSONObject>() {
+//
+//                            // Takes the response from the JSON request
+//                            @Override
+//                            public void onResponse(JSONObject response) {
+//                                try {
+//                                    mote.setChannel0(response.getBoolean("channel0"));
+//                                    mote.setChannel1(response.getBoolean("channel1"));
+//                                    mote.setChannel2(response.getBoolean("channel2"));
+//
+//                                    ImageView ivStatus =  (ImageView) rowView.findViewById(R.id.ivStatus);
+//                                    ivStatus.setImageResource(mote.isEnabled() ? R.drawable.light_on : R.drawable.light_off);
+////                                    Log.e(TAG, JsonURL + " - " + (enabled ? "enabled" : "disabled"));
+//                                }
+//                                // Try and catch are included to handle any errors due to JSON
+//                                catch (JSONException e) {
+//                                    // If an error occurs, this prints the error to the log
+//                                    e.printStackTrace();
+//                                }
+//                            }
+//                        },
+//                        // The final parameter overrides the method onErrorResponse() and passes VolleyError
+//                        //as a parameter
+//                        new Response.ErrorListener() {
+//                            @Override
+//                            // Handles errors that occur due to Volley
+//                            public void onErrorResponse(VolleyError error) {
+//                                Log.e("Volley", "Error");
+//                            }
+//                        }
+//                );
+//                // Adds the JSON object request "obreq" to the request queue
+//                requestQueue.add(enabledReq);
+//            }
+//        });
 
         mNsdManager = (NsdManager) this.getSystemService(Context.NSD_SERVICE);
 
@@ -161,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
                                     // Creating the JsonObjectRequest class called obreq, passing required parameters:
                                     //GET is used to fetch data from the server, JsonURL is the URL to be fetched from.
-                                    final String JsonURL = "http://"+foundServiceInfo.getHost();
+                                    final String JsonURL = "http://"+foundServiceInfo.getHost()+"/status";
                                     JsonObjectRequest enabledReq = new JsonObjectRequest(Request.Method.GET, JsonURL, null,
                                             // The third parameter Listener overrides the method onResponse() and passes
                                             //JSONObject as a parameter
@@ -171,8 +170,19 @@ public class MainActivity extends AppCompatActivity {
                                                 @Override
                                                 public void onResponse(JSONObject response) {
                                                     try {
-                                                        boolean enabled = response.getBoolean("enabled");
-                                                        mote.setEnabled(enabled);
+                                                        mote.setChannel0(response.isNull("channel0") ? null : response.getBoolean("channel0"));
+                                                        mote.setChannel1(response.isNull("channel1") ? null : response.getBoolean("channel1"));
+                                                        mote.setChannel2(response.isNull("channel2") ? null : response.getBoolean("channel2"));
+                                                        Log.e(TAG, response.toString());
+                                                        runOnUiThread(new Runnable() {
+                                                            public void run() {
+                                                                items.add(mote);
+                                                                Log.e(TAG, "BEFORE adapter.notifyDataSetChanged");
+                                                                adapter.notifyDataSetChanged();
+                                                                Log.e(TAG, "AFETER adapter.notifyDataSetChanged");
+                                                            }
+
+                                                        });
 //                                                        Log.e(TAG, JsonURL + " - " + (enabled ? "enabled" : "disabled"));
                                                     }
                                                     // Try and catch are included to handle any errors due to JSON
@@ -194,15 +204,6 @@ public class MainActivity extends AppCompatActivity {
                                     );
                                     // Adds the JSON object request "obreq" to the request queue
                                     requestQueue.add(enabledReq);
-
-                                    runOnUiThread(new Runnable() {
-                                        public void run() {
-                                            items.add(mote);
-                                            adapter.notifyDataSetChanged();
-                                        }
-
-                                    });
-
 
                                     Log.e(TAG, "Resolve Succeeded. " + serviceInfo);
                                 }
